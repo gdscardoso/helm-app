@@ -1,0 +1,177 @@
+
+#if enabled true, creates deployment
+deployment:
+  enabled: true
+
+#if enabled true, creates statefulSet
+statefulSet:
+  enabled: false
+
+#general parameters to deployment or statefullset
+
+application_name: qqpag-app-bff
+image: nginx:stable-alpine
+
+imagePullSecrets:
+  name: nexus
+
+labels: # {}
+  tags.datadoghq.com/env: hml
+  tags.datadoghq.com/service: qqpag-app-bff
+  tags.datadoghq.com/version: 1.0.0
+
+#if enabled true, creates startupProbe
+startupProbe:
+  enabled: false
+  periodSeconds: 10
+  failureThreshold: 6
+  #if enabled true, use httpGet
+  httpGet:
+    enabled: false
+    port: 80
+    path: /api/health
+  #if enabled true, use exec command
+  command:
+    enabled: false
+    cmd:
+      - curl
+      - --fail
+      - http://localhost:80
+#if enabled true, creates livenessProbe
+livenessProbe:
+  enabled: false
+  periodSeconds: 60
+  initialDelaySeconds: 60
+  #if enabled true, use httpGet
+  httpGet:
+    enabled: true
+    port: 80
+    path: /api/health
+  #if enabled true, use exec command
+  command:
+    enabled: false
+    cmd:
+      - curl
+      - --fail
+      - http://localhost:80
+
+#all parameters bellow are required
+resources:
+  requests:
+    memory: 64Mi
+    cpu: 100m
+  limits:
+    memory: 128Mi
+    cpu: 500m
+
+#command: ["npm"]
+#args: ["run", "start:hml"]
+
+replicas: 2
+#---end of required parameters
+
+#if filled, creates tolerations
+#tolerations:
+#  key: node_group
+#  value: application-private
+#  effect: NoSchedule
+
+#if filled, creates affinity
+#affinity:
+#  #if filled, creates node affinity
+#  nodeAffinity:
+#    requiredDuringSchedulingIgnoredDuringExecution:
+#      key: node_group
+#      values: application-private
+#    preferredDuringSchedulingIgnoredDuringExecution:
+#      weight: 1
+#      key: node_group
+#      values: application-private
+#
+#  #if filled, creates podAntiAffinity
+#  podAntiAffinity:
+#    preferredDuringSchedulingIgnoredDuringExecution:
+#      weight: 100
+#      key: app.kubernetes.io/instance
+#      values: qqpag-app-bff
+#      topologyKey: kubernetes.io/hostname # Fixo - Label do NODE para antiAffinity
+
+
+
+#if filled, creates evironment variables directly on deployment
+envVars:
+  DD_TRACE_ON: "true"
+  DD_LOGS_INJECTION: "true"
+  DD_RUNTIME_METRICS_ENABLED: "true"
+  DD_APPSEC_ENABLED: "true"
+  DD_SAMPLE_RATE: "0.10"
+
+#envVarsRef:
+#  DD_AGENT_HOST:
+#    valueFrom:
+#      fieldRef:
+#        fieldPath: status.hostIP
+
+
+configmap:
+  enabled: true
+  data:
+    APP_ENV: hml
+    APP_SERVICE: qqpag-app-bff
+    APP_VERSION: 1.0.0
+
+#if filled, creates a opaque Secret containig all variables bellow
+secrets:
+  enabled: true
+  data:
+    DB_USER: 'abc123'
+    DB_PASSWORD: 'abc321'
+
+#if enabled, creates hpa
+hpa:
+  enabled: true
+  min: 1
+  max: 2
+#  memoryAverageUtilization: 80
+  cpuAverageUtilization: 300
+
+#if enabled, creates service
+service:
+  enabled: true
+  type: ClusterIP
+  protocol: TCP
+  port: 80
+  targetPort: 80
+
+#if enabled, creates Ingress
+ingress:
+  enabled: true
+  dns: qqpag-app-bff.app.hml-k8s.qq
+  path: /appverde_hml
+  pathType: Prefix
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+
+#if filled, creates Cronjobs based on list parameters bellow
+#cronJobs:
+#  - name: "cronJob1"
+#    image: alpine:latest
+#    schedule: "0 5 * * *"
+#    #if filled, creates commands based on list parameters bellow
+#    command:
+#      cmd:
+#        - /bin/sh
+#        - -c
+#        - "kubectl rollout restart deployment sisreg-api-login -n central-recebiveis"
+#
+#  - name: "cronJob2"
+#    image: curlimages/curl:7.83.1
+#    schedule: "*/1 * * * *"
+#    #if filled, creates Cronjobs based on list parameters bellow
+#    command:
+#      cmd:
+#        - /bin/sh
+#        - -ec
+#        - 'curl -X GET "http://pix-cobranca:4011/msb/demo-liquidacao-hml/v1/jobLiquidaAutomatico" --max-time 60'
+
