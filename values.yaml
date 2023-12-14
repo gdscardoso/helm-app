@@ -8,21 +8,17 @@ statefulSet:
   enabled: false
 
 #general parameters to deployment or statefullset
-
-application_name: qqpag-app-bff
+application_name: app-name
 image: nginx:stable-alpine
 
 imagePullSecrets:
   name: nexus
 
-labels: # {}
-  tags.datadoghq.com/env: hml
-  tags.datadoghq.com/service: qqpag-app-bff
-  tags.datadoghq.com/version: 1.0.0
+labels: {}
 
 #if enabled true, creates startupProbe
 startupProbe:
-  enabled: false
+  enabled: true
   periodSeconds: 10
   failureThreshold: 6
   #if enabled true, use httpGet
@@ -39,7 +35,7 @@ startupProbe:
       - http://localhost:80
 #if enabled true, creates livenessProbe
 livenessProbe:
-  enabled: false
+  enabled: true
   periodSeconds: 60
   initialDelaySeconds: 60
   #if enabled true, use httpGet
@@ -56,18 +52,18 @@ livenessProbe:
       - http://localhost:80
 
 #all parameters bellow are required
-resources:
-  requests:
-    memory: 64Mi
-    cpu: 100m
-  limits:
-    memory: 128Mi
-    cpu: 500m
+resources: {}
+#  requests:
+#    memory: 64Mi
+#    cpu: 100m
+#  limits:
+#    memory: 128Mi
+#    cpu: 500m
 
-#command: ["npm"]
-#args: ["run", "start:hml"]
+command: []
+args: []
 
-replicas: 2
+replicas: 1
 #---end of required parameters
 
 #if filled, creates tolerations
@@ -99,45 +95,37 @@ replicas: 2
 
 
 #if filled, creates evironment variables directly on deployment
-envVars:
-  DD_TRACE_ON: "true"
-  DD_LOGS_INJECTION: "true"
-  DD_RUNTIME_METRICS_ENABLED: "true"
-  DD_APPSEC_ENABLED: "true"
-  DD_SAMPLE_RATE: "0.10"
+#envVars:
+#  X_ENV: "abc"
 
 #envVarsRef:
-#  DD_AGENT_HOST:
+#  X_HOST:
 #    valueFrom:
 #      fieldRef:
 #        fieldPath: status.hostIP
 
-
 configmap:
-  enabled: true
+  enabled: false
   data:
-    APP_ENV: hml
-    APP_SERVICE: qqpag-app-bff
-    APP_VERSION: 1.0.0
+    CONFIG: 'config'
 
 #if filled, creates a opaque Secret containig all variables bellow
 secrets:
-  enabled: true
+  enabled: false
   data:
-    DB_USER: 'abc123'
-    DB_PASSWORD: 'abc321'
+    SECRET: 'secret'
 
 #if enabled, creates hpa
 hpa:
-  enabled: true
-  min: 1
-  max: 2
+  enabled: false
+#  min: 1
+#  max: 2
 #  memoryAverageUtilization: 80
-  cpuAverageUtilization: 300
+#  cpuAverageUtilization: 300
 
 #if enabled, creates service
 service:
-  enabled: true
+  enabled: false
   type: ClusterIP
   protocol: TCP
   port: 80
@@ -145,14 +133,14 @@ service:
 
 #if enabled, creates Ingress
 ingress:
-  enabled: true
-  dns: qqpag-app-bff.app.hml-k8s.qq
-  tls: true
+  enabled: false
+  dns: dns.com.br
+  tls: false
   caIssuer: ca-issuer-qq
-  path: /appverde_hml
+  path: /api
   pathType: Prefix
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /$2
+  annotations: {}
+
 
 #if filled, creates Cronjobs based on list parameters bellow
 #cronJobs:
