@@ -1,0 +1,14 @@
+apiVersion: v1
+entries:
+  app-helm:
+  - apiVersion: v2
+    appVersion: 1.0.0
+    created: "2023-12-13T21:02:04.802886-03:00"
+    description: A Helm chart for Kubernetes
+    digest: 5e827e8f6c72efbbec9f63bbb2516ff6efeff858c56948bcc7d47ce36a156714
+    name: app-helm
+    type: application
+    urls:
+    - app-helm-1.0.0.tgz
+    version: 1.0.0
+generated: "2023-12-13T21:02:04.800826-03:00"
