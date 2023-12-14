@@ -147,10 +147,11 @@ service:
 ingress:
   enabled: true
   dns: qqpag-app-bff.app.hml-k8s.qq
+  tls: true
+  caIssuer: ca-issuer-qq
   path: /appverde_hml
   pathType: Prefix
   annotations:
-    kubernetes.io/ingress.class: nginx
     nginx.ingress.kubernetes.io/rewrite-target: /$2
 
 #if filled, creates Cronjobs based on list parameters bellow

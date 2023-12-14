@@ -11,7 +11,7 @@ metadata:
 spec:
   replicas: {{ .Values.replicas | default "1" }}
   revisionHistoryLimit: 3
-  serviceName: svc-{{ .Values.application_name }}
+  serviceName: {{ .Values.application_name }}
   selector:
     matchLabels:
       app: {{ .Values.application_name }}
@@ -84,9 +84,43 @@ spec:
       containers:
       - name: {{ .Values.application_name }}
         image: {{ .Values.image }}
-        {{- if .Values.resources }}
+        {{- if .Values.command  }}
         command: {{ .Values.command}}
+        {{- end}}
+        {{- if .Values.args }}
         args: {{ .Values.args}}
+        {{- end}}
+        {{- if .Values.startupProbe.enabled }}
+        startupProbe:
+          periodSeconds: {{ .Values.startupProbe.periodSeconds }}
+          failureThreshold: {{ .Values.startupProbe.failureThreshold }}
+          {{- if .Values.startupProbe.httpGet.enabled }}
+          httpGet:
+            port: {{ .Values.startupProbe.httpGet.port }}
+            path: {{ .Values.startupProbe.httpGet.path }}
+          {{- end}}
+          {{- if .Values.livenessProbe.command.enabled }}
+          exec:
+            command:
+              {{ toYaml .Values.livenessProbe.command.cmd | nindent 14 | trim }}
+          {{- end }}
+        {{- end }}
+        {{- if .Values.livenessProbe.enabled }}
+        livenessProbe:
+          periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+          initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+          {{- if .Values.livenessProbe.httpGet.enabled }}
+          httpGet:
+            port: {{ .Values.livenessProbe.httpGet.port }}
+            path: {{ .Values.livenessProbe.httpGet.path }}
+          {{- end }}
+          {{- if .Values.livenessProbe.command.enabled }}
+          exec:
+            command:
+              {{ toYaml .Values.livenessProbe.command.cmd | nindent 14 | trim }}
+          {{- end }}
+        {{- end }}
+        {{- if .Values.resources }}
         resources:
         {{- if .Values.resources.requests }}
         {{- if or .Values.resources.requests.memory .Values.resources.requests.cpu }}
@@ -123,10 +157,24 @@ spec:
           - name: {{ $name }}
             value: {{ $value | quote }}
           {{- end }}
+
+          {{- range $name, $value := .Values.envVarsRef }}
+          - name: {{ $name }}
+          {{- with $value }}
+          {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- end }}
         {{- end }}
+
+        {{- if or .Values.configmap.enabled .Values.secrets.enabled }}
         envFrom:
+        {{- if .Values.configmap.enabled }}
         - configMapRef:
-            name: configmap-{{ .Values.application_name }}
+            name: {{ .Values.application_name }}
+        {{- end}}
+        {{- if .Values.secrets.enabled }}
         - secretRef:
-            name: {{ .Values.application_name }}-secret
+            name: {{ .Values.application_name }}
+        {{- end}}
+        {{- end }}
 {{- end }}
