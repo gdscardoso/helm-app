@@ -1,8 +1,10 @@
 {{- if .Values.deployment.enabled }}
+{{- $root := . -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ .Values.application_name }}
+  namespace: {{ .Release.Namespace }}
   labels:
     app: {{ .Values.application_name }}
   {{- with .Values.labels }}
@@ -81,6 +83,25 @@ spec:
       imagePullSecrets:
       - name: {{ .Values.imagePullSecrets.name }}
       {{- end }}
+      {{- if .Values.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+      {{- end}}
+      {{- if .Values.initContainer }}
+      initContainers:
+        - name: init
+          image: {{ .Values.initContainer.image }}
+          command:
+            {{- range .Values.initContainer.command }}
+            - {{ . | quote }}
+            {{- end}}
+          {{- if .Values.initContainer.volumeMounts }}
+          volumeMounts:
+            {{- range .Values.initContainer.volumeMounts }}
+            - name: {{ .name }}
+              mountPath: {{ .mountPath }}
+            {{- end}}
+          {{- end}}
+      {{- end}}
       containers:
       - name: {{ .Values.application_name }}
         image: {{ .Values.image }}
@@ -184,4 +205,17 @@ spec:
             name: {{ .Values.application_name }}
         {{- end}}
         {{- end }}
+        {{- if .Values.persistence.enabled }}
+        volumeMounts:
+          {{- range .Values.volumes }}
+          - name: {{ $root.Values.application_name }}-{{ .name }}
+            mountPath: {{ .dir }}
+          {{- end}}
+      volumes:
+        {{- range .Values.volumes }}
+        - name: {{ $root.Values.application_name }}-{{ .name }}
+          persistentVolumeClaim:
+            claimName: {{ .pvcName }}
+        {{- end}}
+        {{- end}}
 {{- end }}

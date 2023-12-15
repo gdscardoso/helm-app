@@ -8,13 +8,27 @@ statefulSet:
   enabled: false
 
 #general parameters to deployment or statefullset
-application_name: app-name
+application_name: qpp-name
 image: nginx:stable-alpine
 
+
+#terminationGracePeriodSeconds: 30
 imagePullSecrets:
   name: nexus
 
 labels: {}
+
+# include init containser commands
+#initContainer:
+#  image: alpine:3.16.0
+#  command:
+#    - sh
+#    - -c
+#    - (chmod 777 -R /home/node/temp)
+#  volumeMounts:
+#    - name: pix-bcb-core-data
+#      mountPath: /home/node/temp
+
 
 #if enabled true, creates startupProbe
 startupProbe:
@@ -106,14 +120,34 @@ replicas: 1
 
 configmap:
   enabled: false
-  data:
-    CONFIG: 'config'
+#  data:
+#    CONFIG: 'config'
 
 #if filled, creates a opaque Secret containig all variables bellow
 secrets:
   enabled: false
-  data:
-    SECRET: 'secret'
+#  data:
+#    SECRET: 'secret'
+
+# Persistence PVC
+persistence:
+  enabled: false
+  pvcName: qpp-name-pvc
+  requestSize: 1Gi
+  limitSize: 1Gi
+  accessMode: ReadWriteOnce
+  storageClass: '-'
+
+
+## Persistence Mounts
+volumes:
+  - name: temp
+    dir: /home/node/temp
+    pvcName: qpp-name-pvc
+    # pode ser indicado um pvc criado por fora do helm
+  - name: data
+    dir: /home/node/data
+    pvcName: qpp-name-pvc
 
 #if enabled, creates hpa
 hpa:

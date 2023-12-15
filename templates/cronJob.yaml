@@ -5,6 +5,7 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: {{ $job.name }}
+  namespace: {{ .Release.Namespace }}
 spec:
   schedule: {{ $job.schedule | quote }}
   jobTemplate:
@@ -19,6 +20,6 @@ spec:
                 {{ toYaml $job.command.cmd | nindent 16 | trim }}
               {{- end }}
           restartPolicy: OnFailure
----          
+---
 {{- end }}
 {{- end }}
